@@ -8,6 +8,7 @@ using System.Windows.Media;
 using Windows.Storage;
 using System.Diagnostics;
 using System.IO;
+using System.IO.IsolatedStorage;
 
 namespace WPCordovaClassLib.Cordova.Commands
 {
@@ -23,7 +24,7 @@ namespace WPCordovaClassLib.Cordova.Commands
             try
             {
                 // Get the file.
-                StorageFile file = await Windows.Storage.StorageFile.GetFileFromPathAsync(args[0]);
+                StorageFile file = await LocateFile(args[0]);
 
                 // Launch the bug query file.
                 await Windows.System.Launcher.LaunchFileAsync(file);
@@ -39,5 +40,16 @@ namespace WPCordovaClassLib.Cordova.Commands
                 DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR), aliasCurrentCommandCallbackId);
             }
         }
+
+        private async Task<StorageFile> LocateFile(string path)
+        {
+            // Interpret paths starting with slash as reference to isolated storage; otherwise, treat them as full paths
+            if (path.StartsWith("/"))
+            {
+                return await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appdata:///local/" + path));
+            }
+            return await StorageFile.GetFileFromPathAsync(path);
+        }
+
     }
 }
