@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Cordova plug-in" default="main">
+
+	<property name="output.dir" location="${basedir}/../webratio-tool/com.webratio.generator.mobile/BuiltinComponents/NativePlugins" />
+	<property name="zip" value="${output.dir}/cordova-plugin-file-opener2.zip" />
+
+	<available file="${output.dir}" type="dir" property="outputDirPresent" />
+	<fail unless="outputDirPresent" message="Invalid output dir ${output.dir}" />
+
+	<target name="main">
+		<delete file="${zip}" />
+		<zip destfile="${zip}">
+			<fileset dir=".">
+				<include name="src/**" />
+				<include name="webratio/**" />
+				<include name="www/**" />
+				<include name="plugin.xml" />
+				<exclude name="CVS" />
+			</fileset>
+		</zip>
+	</target>
+
+</project>
+
