@@ -31,7 +31,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - (void) open: (CDVInvokedUrlCommand*)command {
 
-	NSString *path = [[command.arguments objectAtIndex:0] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    NSString *path = [command.arguments objectAtIndex:0];
 	NSString *contentType = [command.arguments objectAtIndex:1];
 	BOOL showPreview = YES;
 
@@ -53,7 +53,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	}
 
 	dispatch_async(dispatch_get_main_queue(), ^{
-		NSURL *fileURL = [NSURL URLWithString:path];
+		NSURL *fileURL = NULL;
+		NSString *decodedPath = [path stringByRemovingPercentEncoding];
+		if ([path isEqualToString:decodedPath]) {
+				NSLog(@"Path parameter not encoded. Building file URL encoding it...");
+				fileURL = [NSURL fileURLWithPath:[path stringByReplacingOccurrencesOfString:@"file://" withString:@""]];;
+		} else {
+				NSLog(@"Path parameter already encoded. Building file URL without encoding it...");
+				fileURL = [NSURL URLWithString:path];
+		}
 
 		localFile = fileURL.path;
 
@@ -104,6 +112,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @implementation FileOpener2 (UIDocumentInteractionControllerDelegate)
 	- (UIViewController *)documentInteractionControllerViewControllerForPreview:(UIDocumentInteractionController *)controller {
-		return self.cdvViewController;
+		UIViewController *presentingViewController = self.viewController;
+		if (presentingViewController.view.window != [UIApplication sharedApplication].keyWindow){
+			presentingViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
+		}
+
+		while (presentingViewController.presentedViewController != nil && ![presentingViewController.presentedViewController isBeingDismissed]){
+			presentingViewController = presentingViewController.presentedViewController;
+		}
+		return presentingViewController;
 	}
 @end
